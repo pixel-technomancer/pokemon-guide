@@ -1,0 +1,11 @@
+{
+  "appId": "com.pokemonguide.app",
+  "productName": "Pokemon Guide",
+  "directories": { "output": "release" },
+  "files": ["dist/**/*", "electron/**/*", "icon.png"],
+  "mac": {
+    "category": "public.app-category.reference",
+    "target": "dir",
+    "icon": "icon.png"
+  }
+}
