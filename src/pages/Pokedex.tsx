@@ -25,7 +25,7 @@ export default function Pokedex({ isCaught, isOnTeam, onToggleCaught, onToggleTe
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [search, setSearch] = useState('');
-  const [typeFilter, setTypeFilter] = useState<string | null>(null);
+  const [typeFilter, setTypeFilter] = useState<string[]>([]);
   const [caughtFilter, setCaughtFilter] = useState<'all' | 'caught' | 'uncaught'>('all');
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [displayCount, setDisplayCount] = useState(BATCH_SIZE);
@@ -77,8 +77,8 @@ export default function Pokedex({ isCaught, isOnTeam, onToggleCaught, onToggleTe
         p.name.includes(s) || p.id.toString() === s || p.id.toString().padStart(4, '0').includes(s)
       );
     }
-    if (typeFilter) {
-      result = result.filter(p => p.types.includes(typeFilter));
+    if (typeFilter.length > 0) {
+      result = result.filter(p => typeFilter.every(t => p.types.includes(t)));
     }
     if (caughtFilter === 'caught') result = result.filter(p => isCaught(p.id));
     if (caughtFilter === 'uncaught') result = result.filter(p => !isCaught(p.id));
@@ -125,22 +125,31 @@ export default function Pokedex({ isCaught, isOnTeam, onToggleCaught, onToggleTe
       {/* Type filters */}
       <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 16 }}>
         <button
-          className={`filter-chip ${typeFilter === null ? 'active' : ''}`}
-          onClick={() => { setTypeFilter(null); setDisplayCount(BATCH_SIZE); }}
+          className={`filter-chip ${typeFilter.length === 0 ? 'active' : ''}`}
+          onClick={() => { setTypeFilter([]); setDisplayCount(BATCH_SIZE); }}
           style={{ fontSize: 11 }}
         >All Types</button>
-        {TYPES.map(type => (
-          <button
-            key={type}
-            className={`filter-chip ${typeFilter === type ? 'active' : ''}`}
-            onClick={() => { setTypeFilter(type === typeFilter ? null : type); setDisplayCount(BATCH_SIZE); }}
-            style={{
-              fontSize: 11,
-              ...(typeFilter === type ? {} : { borderColor: TYPE_COLORS[type], color: TYPE_COLORS[type] }),
-              ...(typeFilter === type ? { background: TYPE_COLORS[type], borderColor: TYPE_COLORS[type] } : {}),
-            }}
-          >{type}</button>
-        ))}
+        {TYPES.map(type => {
+          const active = typeFilter.includes(type);
+          return (
+            <button
+              key={type}
+              className={`filter-chip ${active ? 'active' : ''}`}
+              onClick={() => {
+                setTypeFilter(prev =>
+                  prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
+                );
+                setDisplayCount(BATCH_SIZE);
+              }}
+              style={{
+                fontSize: 11,
+                ...(active
+                  ? { background: TYPE_COLORS[type], borderColor: TYPE_COLORS[type] }
+                  : { borderColor: TYPE_COLORS[type], color: TYPE_COLORS[type] }),
+              }}
+            >{type}</button>
+          );
+        })}
       </div>
 
       {/* Progress bar */}
